@@ -16,9 +16,9 @@ export function patternSpecificity(pattern: string): number {
   const literalLength = pattern.replace(/\*/g, "").length;
   const hasWildcard = pattern.includes("*");
 
-  // Exact matches get a bonus to ensure they always beat prefix globs
-  // of similar length
-  return hasWildcard ? literalLength : literalLength + 1000;
+  // Exact matches get a proportional bonus so they beat prefix globs
+  // of similar length, but do not dominate across orders of magnitude.
+  return hasWildcard ? literalLength : literalLength + literalLength;
 }
 
 /**

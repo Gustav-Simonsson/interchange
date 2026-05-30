@@ -17,9 +17,9 @@ describe("patternSpecificity", () => {
     expect(patternSpecificity("wallet:wal_*")).toBe(11);
   });
 
-  test("exact match gets bonus of 1000", () => {
-    // "agent:agt_abc" has 13 chars + 1000 bonus
-    expect(patternSpecificity("agent:agt_abc")).toBe(1013);
+  test("exact match gets proportional bonus (2× literal length)", () => {
+    // "agent:agt_abc" has 13 chars + 13 bonus = 26
+    expect(patternSpecificity("agent:agt_abc")).toBe(26);
   });
 
   test("more specific patterns score higher", () => {
@@ -38,16 +38,16 @@ describe("patternSpecificity", () => {
 
   test("action patterns follow same rules", () => {
     expect(patternSpecificity("*")).toBe(0);
-    expect(patternSpecificity("read")).toBe(1004); // 4 chars + 1000
-    expect(patternSpecificity("manage")).toBe(1006); // 6 chars + 1000
+    expect(patternSpecificity("read")).toBe(8); // 4 chars + 4 bonus
+    expect(patternSpecificity("manage")).toBe(12); // 6 chars + 6 bonus
   });
 });
 
 describe("grantSpecificity", () => {
   test("combines resource and action specificity", () => {
     expect(grantSpecificity("*", "*")).toBe(0);
-    expect(grantSpecificity("agent:*", "read")).toBe(6 + 1004);
-    expect(grantSpecificity("agent:agt_abc", "manage")).toBe(1013 + 1006);
+    expect(grantSpecificity("agent:*", "read")).toBe(6 + 8);
+    expect(grantSpecificity("agent:agt_abc", "manage")).toBe(26 + 12);
   });
 
   test("more specific grant beats less specific", () => {
@@ -65,8 +65,8 @@ describe("grantSpecificity", () => {
 
 describe("patternSpecificity edge cases", () => {
   test("empty string gets exact match bonus", () => {
-    // Empty string has no wildcard, so it gets the 1000 bonus + 0 literal chars
-    expect(patternSpecificity("")).toBe(1000);
+    // Empty string has no wildcard, so it gets 0 + 0 bonus
+    expect(patternSpecificity("")).toBe(0);
   });
 
   test("multi-wildcard pattern scores only literal characters", () => {
@@ -78,7 +78,7 @@ describe("patternSpecificity edge cases", () => {
     // "api:stripe:*" has 11 literal chars ("api:stripe:") and contains a wildcard
     expect(patternSpecificity("api:stripe:*")).toBe(11);
     // "api:stripe:charges" has 18 chars and no wildcard -> 18 + 1000
-    expect(patternSpecificity("api:stripe:charges")).toBe(1018);
+    expect(patternSpecificity("api:stripe:charges")).toBe(36);
   });
 
   test("specificity is character-count based, not segment-aware", () => {
